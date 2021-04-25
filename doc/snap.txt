@@ -1,0 +1,177 @@
+*snap.txt*  Placeholders in vim done right
+
+Author: Nova Senco <novasenco at protonmail dot ch>
+Last change: 24 April 2021
+License: Unlicense
+
+
+INTRODUCTION                                                            *snap*
+
+Snap allows you to easily insert and snap to placeholders. For example, you
+can embed a placeholder in a snippet or a template, or you can simply insert a
+placeholder, so you can edit other things and quickly snap to this location
+later.
+
+By default, placeholders look like `{@}`. There is also something called a
+reminder, which is a placeholder with additional text to remind you why it is
+there. A reminder looks like `{@:reminder}`; "reminder" is the reminder text.
+
+Using a binding of your choosing, you can snap to a placeholder or a reminder
+(which is really a placeholder). When you do, the placeholder is deleted and
+you'll be in insert mode where the placeholder was. If there was any reminder
+text, it will be stored in "0 (insert with <c-r>0). ". is also preserved
+(insert with <c-r>.). If you want to repeat a snap, you need tpope's
+vim-repeat plugin.
+
+
+CREATING MAPS                                                      *snap-maps*
+
+Besides autoload functions, Snip only exposes these six sets of |<Plug>| maps:
+
+  RHS                     Modes      Description ~
+<plug>(snapSimple)      I          Insert a simple placeholder
+<plug>(snapText)        I          Insert placeholder w reminder text
+<plug>(snapNext)        INVS       Snap to the next placeholder
+<plug>(snapRepeatNext)  INVS       Repeat last snap on next placeholder
+<plug>(snapPrev)        INVS       Snap to the previous placeholder
+<plug>(snapRepeatPrev)  INVS       Repeat last snap on previous placeholder
+
+                                                           *snap-example-maps*
+Snap Example Maps ~
+
+Below are the recommended maps. Note that while the below maps work in gvim
+and neovim, if you use terminal vim, you need to use add the code from
+|snap-meta-snips| so that these meta maps will work.
+
+  Example                            Description ~
+imap <m-;> <plug>(snapSimple)      " insert a simple placeholder
+imap <m-:> <plug>(snapText)        " insert a placeholder with a reminder
+imap <m-l> <plug>(snapNext)        " snap to next placeholder
+nmap <m-l> <plug>(snapNext)
+xmap <m-l> <plug>(snapNext)
+smap <m-l> <plug>(snapNext)
+omap <m-l> <plug>(snapNext)
+imap <m-L> <plug>(snapRepeatNext)  " snap to next and insert @.
+nmap <m-L> <plug>(snapRepeatNext)
+xmap <m-L> <plug>(snapRepeatNext)
+smap <m-L> <plug>(snapRepeatNext)
+imap <m-h> <plug>(snapPrev)        " snap to previous placeholder
+nmap <m-h> <plug>(snapPrev)
+xmap <m-h> <plug>(snapPrev)
+smap <m-h> <plug>(snapPrev)
+omap <m-h> <plug>(snapPrev)
+imap <m-H> <plug>(snapRepeatPrev)  " snap to previous and insert @.
+nmap <m-H> <plug>(snapRepeatPrev)
+xmap <m-H> <plug>(snapRepeatPrev)
+smap <m-H> <plug>(snapRepeatPrev)
+
+Note that using vmap instead of xmap and smap will break snapping.
+
+                                                                  *snap--demo*
+Snap Demo ~
+
+Below is a small demonstration about how Snap works when inserting or snapping
+to a placeholder. It uses the maps defined in |snap-example-maps| to
+demonstrate functionality.
+
+  Mode    Start                 Keys                 End ~
+Insert  `foo | bar`             <m-;>                `foo {@}| bar`
+*       `foo| {@} bar`          <m-l>qux             `foo qux| bar`
+Insert  `foo | bar`             <m-:>baz             `foo {@:baz}| bar`
+*       `foo| {@:baz} bar`      <m-l>                `foo | bar` [1]
+*       `foo| {@:baz} bar`      <m-l>qux             `foo qux| bar`
+*       `foo| {@:baz} bar`      <m-l>qux<c-r>0       `foo quxbaz| bar`
+*       `|foo {@} {@}`          <m-l>bar<m-l><c-r>.  `foo bar bar|`
+*       `|foo {@} {@}`          <m-l>bar<esc>.       `foo bar bar|` [2]
+*       `|foo {@} {@}`          <m-l>bar<m-L>        `foo bar bar|`
+______________________________________________________________________________
+[1] if |g:snap#noselect| is 1, reminder is selected in |Select-mode|
+[2] requires tpope/vim-repeat! <https://github.com/tpope/vim-repeat>
+[3] some reminder text was inserted via |select-mode|; this doesn't happen
+    when `g:snap#noselect` is undefined or 0
+
+Here is how the above demo should be interpreted:
+  `Mode`  -> the mode you start in; * means any mode (normal, insert, visual,
+           select modes)
+  `Start` -> the text in the buffer before you type `Keys`
+  `Keys`  -> the keys you press to the text in `End` (note that these use the
+          maps defined in |snap-example-maps|)
+  `End`   -> how the text should look after typing `Keys`
+  `|`     -> the cursor position
+
+                                                              *snap-meta-maps*
+Fixing Meta Maps in Terminal Vim ~
+
+If you're in terminal vim, you need this to make meta maps work.
+>
+  " set up Meta to work properly for most keys in terminal vim
+  if !has('nvim') && !has('gui_running')
+    " PROBLEMS: not possible to map Meta with Arrow Keys or Tab (etc)
+    " PROBLEMS: 32 (space), 62 (>), 91 ([), 93 (])
+    for ord in range(33,61)+range(63,90)+[92]+range(94,126)
+      let char = ord is 34 ? '\"' : ord is 124 ? '\|' : nr2char(ord)
+      exec printf("set <m-%s>=\<esc>%s", char, char)
+      if exists(':tnoremap') " fix terminal control sequences
+        exec printf("tnoremap <silent> <m-%s> <esc>%s", char, char)
+      endif
+    endfor
+    " PROBLEMS: <c-up>,<c-down> do not work in any terminal
+    " set up <c-left> and <c-right> properly
+    exe "set <c-right>=\<esc>[1;5C"
+    exe "set <c-left>=\<esc>[1;5D"
+    " NOTE: if above don't work, compare with ctrl-v + CTRL-{LEFT,RIGHT}
+    "       in INSERT mode
+  endif
+  " NOTE: use "map <m-\|>" or "map <m-bar>" to map <bar> (|)
+<
+The above vim-script actually enables all possible meta maps in terminal vim.
+This is very handy in general, but it is especially so for this plugin, since
+there are a limited number of available maps and even fewer consistent maps
+you can use in all modes. With meta maps, you can have one shortcut (eg, <m-l>
+to snap to the next placeholder) for insert, normal, visual, and select modes!
+
+
+SNAP OPTIONS                                                    *snap-options*
+
+                                                  *b:snap_text*  *g:snap#text*
+Custom Snap Text ~
+
+The placeholder text is fully customizable.
+
+For example, you can make it look like `«⋄»` and `«⋄→reminder»` with the
+following configuration:
+>
+  let g:snap#text = ['«⋄', '→', '»']
+<
+If you want to set snap-text different for just a particular filetype, use a
+|FileType| autocmd. For example, to set it the above placeholder just for vim,
+use the following:
+>
+  augroup Snap
+    autocmd!
+    autocmd FileType vim let b:snap_text = ['«⋄', '→', '»']
+  augroup end
+<
+Alternatively, put the following in $VIMDIR/ftplugin/vim.vim where $VIMDIR is
+your config direcotory.
+
+                                              *b:snap_select*  *g:snap#select*
+Snap Reminder Selection ~
+
+When selecting a reminder, while reminder text is stored into |@0| (:help
+|quote0|), it still disappears. To get around this, you can
+`:let g:snap#select = 1` . This causes the reminder text to be inserted when
+snapping to a reminder. Then it gets visually selected in |Select-mode|.
+Typing anything will delete the selection and insert what you type. <esc> will
+keep the reminder.
+
+WARNING: This breaks repeatability with |.| (if you installed
+tpope/vim-repeat), since typing in |select-mode| causes a new change in the
+|undo-tree|. To get around this, you can use <plug>(snapRepeatNext) and
+<plug>(snapRepeatPrev) (<m-L> and <m-H> in |snap-example-maps|) or simply
+<c-r>. to insert the last insertion.
+
+You can `let b:snap_select = 1` in an autoload or ftplugin to enable this
+functionality for just one buffer.
+______________________________________________________________________________
+`                                          vim: set tw=78 et ft=help norl ai:`
