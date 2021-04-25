@@ -42,29 +42,38 @@ Snap Example Maps ~
 Below are the recommended maps. Note that while the below maps work in gvim
 and neovim, if you use terminal vim, you need to use add the code from
 |snap-meta-snips| so that these meta maps will work.
+>
+  " insert placeholder
+  imap <m-;> <plug>(snapSimple)
+  " insert reminder
+  imap <m-:> <plug>(snapText)
 
-  Example                            Description ~
-imap <m-;> <plug>(snapSimple)      " insert a simple placeholder
-imap <m-:> <plug>(snapText)        " insert a placeholder with a reminder
-imap <m-l> <plug>(snapNext)        " snap to next placeholder
-nmap <m-l> <plug>(snapNext)
-xmap <m-l> <plug>(snapNext)
-smap <m-l> <plug>(snapNext)
-omap <m-l> <plug>(snapNext)
-imap <m-L> <plug>(snapRepeatNext)  " snap to next and insert @.
-nmap <m-L> <plug>(snapRepeatNext)
-xmap <m-L> <plug>(snapRepeatNext)
-smap <m-L> <plug>(snapRepeatNext)
-imap <m-h> <plug>(snapPrev)        " snap to previous placeholder
-nmap <m-h> <plug>(snapPrev)
-xmap <m-h> <plug>(snapPrev)
-smap <m-h> <plug>(snapPrev)
-omap <m-h> <plug>(snapPrev)
-imap <m-H> <plug>(snapRepeatPrev)  " snap to previous and insert @.
-nmap <m-H> <plug>(snapRepeatPrev)
-xmap <m-H> <plug>(snapRepeatPrev)
-smap <m-H> <plug>(snapRepeatPrev)
+  " snap to next placeholder
+  imap <m-l> <plug>(snapNext)
+  nmap <m-l> <plug>(snapNext)
+  xmap <m-l> <plug>(snapNext)
+  smap <m-l> <plug>(snapNext)
+  omap <m-l> <plug>(snapNext)
 
+  " repeat last snap on next placeholder
+  imap <m-L> <plug>(snapRepeatNext)
+  nmap <m-L> <plug>(snapRepeatNext)
+  xmap <m-L> <plug>(snapRepeatNext)
+  smap <m-L> <plug>(snapRepeatNext)
+
+  " snap to previous placeholder
+  imap <m-h> <plug>(snapPrev)
+  nmap <m-h> <plug>(snapPrev)
+  xmap <m-h> <plug>(snapPrev)
+  smap <m-h> <plug>(snapPrev)
+  omap <m-h> <plug>(snapPrev)
+
+  " repeat last snap on previous placeholder
+  imap <m-H> <plug>(snapRepeatPrev)
+  nmap <m-H> <plug>(snapRepeatPrev)
+  xmap <m-H> <plug>(snapRepeatPrev)
+  smap <m-H> <plug>(snapRepeatPrev)
+<
 Note that using vmap instead of xmap and smap will break snapping.
 
                                                                   *snap--demo*
